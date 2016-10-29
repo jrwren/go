@@ -1679,15 +1679,20 @@ func (c *conn) serve(ctx context.Context) {
 
 		// Expect 100 Continue support
 		req := w.req
-		if req.expectsContinue() {
-			if req.ProtoAtLeast(1, 1) && req.ContentLength != 0 {
-				// Wrap the Body reader with one that replies on the connection
-				req.Body = &expectContinueReader{readCloser: req.Body, resp: w}
-			}
-		} else if req.Header.get("Expect") != "" {
-			w.sendExpectationFailed()
-			return
+		req.Continue = func() {
+			w.WriteString("HTTP/1.1 100 Continue\r\n\r\n")
+			w.Flush()
 		}
+		/*
+			if req.expectsContinue() {
+				if req.ProtoAtLeast(1, 1) && req.ContentLength != 0 {
+					// Wrap the Body reader with one that replies on the connection
+					req.Body = &expectContinueReader{readCloser: req.Body, resp: w}
+				}
+			} else if req.Header.get("Expect") != "" {
+				w.sendExpectationFailed()
+				return
+			} */
 
 		c.curReq.Store(w)
 
