@@ -1679,11 +1679,7 @@ func (c *conn) serve(ctx context.Context) {
 
 		// Expect 100 Continue support
 		req := w.req
-		req.Continue = func() {
-			w.WriteString("HTTP/1.1 100 Continue\r\n\r\n")
-			w.Flush()
-		}
-		/*
+		if !c.server.NoAuto100Continue {
 			if req.expectsContinue() {
 				if req.ProtoAtLeast(1, 1) && req.ContentLength != 0 {
 					// Wrap the Body reader with one that replies on the connection
@@ -1692,7 +1688,8 @@ func (c *conn) serve(ctx context.Context) {
 			} else if req.Header.get("Expect") != "" {
 				w.sendExpectationFailed()
 				return
-			} */
+			}
+		}
 
 		c.curReq.Store(w)
 
@@ -2250,6 +2247,11 @@ type Server struct {
 	// If nil, logging goes to os.Stderr via the log package's
 	// standard logger.
 	ErrorLog *log.Logger
+
+	// NoAuto100Continue disabled the default behavior of the
+	// server to automatically reply with a 100-continue response
+	// before invoking a handler.
+	NoAuto100Continue bool
 
 	disableKeepAlives int32     // accessed atomically.
 	nextProtoOnce     sync.Once // guards setupHTTP2_* init

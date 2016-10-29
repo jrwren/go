@@ -283,9 +283,6 @@ type Request struct {
 	// It is unexported to prevent people from using Context wrong
 	// and mutating the contexts held by callers of the same request.
 	ctx context.Context
-
-	// JRW FU
-	Continue func()
 }
 
 // Context returns the request's context. To change the context, use
